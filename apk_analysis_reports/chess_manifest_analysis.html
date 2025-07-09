@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Manifest Analysis Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .component {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .component-name {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .property {
+            margin: 5px 0;
+        }
+        .property-name {
+            font-weight: bold;
+        }
+        .danger {
+            color: #e74c3c;
+        }
+        .warning {
+            color: #f39c12;
+        }
+        .info {
+            color: #3498db;
+        }
+        .summary {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>APK Manifest Analysis Report</h1>
+        
+        <div class="summary">
+            <h2>Summary</h2>
+            <p><span class="property-name">APK File:</span> chess.apk</p>
+            <p><span class="property-name">Package Name:</span> com.chess</p>
+            <p><span class="property-name">Version:</span> Not specified (Code: None)</p>
+            <p><span class="property-name">Target SDK:</span> Not specified</p>
+            <p><span class="property-name">Min SDK:</span> Not specified</p>
+            <p><span class="property-name">Report Generated:</span> 2025-07-09 20:56:11</p>
+        </div>
+        
+        <h2>Exported Activities (6)</h2>
+        <div class="component">
+<div class="component-name">com.chess.splash.SplashActivity</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Intent Filters:</span></div>
+<div style="margin-left: 20px;">
+<div class="property"><span class="property-name">Filter 1:</span></div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Actions:</span> android.intent.action.MAIN</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Categories:</span> android.intent.category.LAUNCHER</div>
+</div>
+</div>
+
+<div class="component">
+<div class="component-name">com.chess.home.HomeActivity</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Intent Filters:</span></div>
+<div style="margin-left: 20px;">
+<div class="property"><span class="property-name">Filter 1:</span></div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Actions:</span> android.intent.action.VIEW</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Categories:</span> android.intent.category.DEFAULT, android.intent.category.BROWSABLE</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Data Schemes:</span> https</div>
+</div>
+<div style="margin-left: 20px;">
+<div class="property"><span class="property-name">Filter 2:</span></div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Actions:</span> android.intent.action.VIEW</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Categories:</span> android.intent.category.DEFAULT, android.intent.category.BROWSABLE</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Data Schemes:</span> https</div>
+</div>
+</div>
+
+<div class="component">
+<div class="component-name">com.facebook.CustomTabActivity</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Intent Filters:</span></div>
+<div style="margin-left: 20px;">
+<div class="property"><span class="property-name">Filter 1:</span></div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Actions:</span> android.intent.action.VIEW</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Categories:</span> android.intent.category.DEFAULT, android.intent.category.BROWSABLE</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Data Schemes:</span> @string/fb_login_protocol_scheme</div>
+</div>
+<div style="margin-left: 20px;">
+<div class="property"><span class="property-name">Filter 2:</span></div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Actions:</span> android.intent.action.VIEW</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Categories:</span> android.intent.category.DEFAULT, android.intent.category.BROWSABLE</div>
+<div class="property" style="margin-left: 20px;"><span class="property-name">Data Schemes:</span> fbconnect</div>
+</div>
+</div>
+
+<div class="component">
+<div class="component-name">org.prebid.mobile.rendering.views.browser.AdBrowserActivity</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+</div>
+
+<div class="component">
+<div class="component-name">com.amazon.aps.ads.activity.ApsInterstitialActivity</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+</div>
+
+<div class="component">
+<div class="component-name">com.amazon.device.ads.DTBInterstitialActivity</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+</div>
+
+        
+        <h2>Exported Services (2)</h2>
+        <div class="component">
+<div class="component-name">androidx.work.impl.background.systemjob.SystemJobService</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Required Permission:</span> android.permission.BIND_JOB_SERVICE</div>
+</div>
+
+<div class="component">
+<div class="component-name">com.google.android.gms.auth.api.signin.RevocationBoundService</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Required Permission:</span> com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION</div>
+</div>
+
+        
+        <h2>Exported Broadcast Receivers (4)</h2>
+        <div class="component">
+<div class="component-name">com.chess.utils.android.phonenumbers.SmsCodeBroadcastReceiver</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Required Permission:</span> com.google.android.gms.auth.api.phone.permission.SEND</div>
+</div>
+
+<div class="component">
+<div class="component-name">androidx.work.impl.diagnostics.DiagnosticsReceiver</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Required Permission:</span> android.permission.DUMP</div>
+</div>
+
+<div class="component">
+<div class="component-name">com.google.firebase.iid.FirebaseInstanceIdReceiver</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Required Permission:</span> com.google.android.c2dm.permission.SEND</div>
+</div>
+
+<div class="component">
+<div class="component-name">androidx.profileinstaller.ProfileInstallReceiver</div>
+<div class="property"><span class="property-name">Exported:</span> true</div>
+<div class="property"><span class="property-name">Required Permission:</span> android.permission.DUMP</div>
+</div>
+
+        
+        <h2>Exported Content Providers (0)</h2>
+        <p>No exported content providers found.</p>
+        
+        <h2>Permissions</h2>
+        <ul>
+<li>android.permission.FOREGROUND_SERVICE</li>
+<li>android.permission.READ_CONTACTS</li>
+<li>android.permission.POST_NOTIFICATIONS</li>
+<li>android.permission.WAKE_LOCK</li>
+<li>com.android.vending.BILLING</li>
+<li>android.permission.SCHEDULE_EXACT_ALARM</li>
+<li>android.permission.DETECT_SCREEN_CAPTURE</li>
+<li>android.permission.BLUETOOTH</li>
+<li>android.permission.BLUETOOTH_ADMIN</li>
+<li>android.permission.ACCESS_FINE_LOCATION</li>
+<li>android.permission.ACCESS_COARSE_LOCATION</li>
+<li>android.permission.BLUETOOTH_SCAN</li>
+<li>android.permission.BLUETOOTH_CONNECT</li>
+<li>android.permission.VIBRATE</li>
+<li>android.permission.CAMERA</li>
+<li>android.permission.ACCESS_NETWORK_STATE</li>
+<li>android.permission.INTERNET</li>
+<li>android.permission.ACCESS_WIFI_STATE</li>
+<li>android.permission.RECORD_AUDIO</li>
+<li>android.permission.READ_EXTERNAL_STORAGE</li>
+<li>android.permission.USE_BIOMETRIC</li>
+<li>android.permission.USE_FINGERPRINT</li>
+<li>com.google.android.gms.permission.AD_ID</li>
+<li>android.permission.ACCESS_ADSERVICES_AD_ID</li>
+<li>android.permission.ACCESS_ADSERVICES_ATTRIBUTION</li>
+<li>android.permission.ACCESS_ADSERVICES_TOPICS</li>
+<li>com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE</li>
+<li>com.google.android.c2dm.permission.RECEIVE</li>
+<li>com.chess.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</li>
+</ul>
+        
+        <h2>Security Analysis</h2>
+        <div class="summary">
+<h3>Security Findings</h3>
+<div class="danger">
+<p><strong>⚠️ Security Warning:</strong> The following components are exported and not protected by permissions:</p>
+<ul>
+<li><strong>Activity:</strong> com.chess.splash.SplashActivity</li>
+<li><strong>Activity:</strong> com.chess.home.HomeActivity</li>
+<li><strong>Activity:</strong> com.facebook.CustomTabActivity</li>
+<li><strong>Activity:</strong> org.prebid.mobile.rendering.views.browser.AdBrowserActivity</li>
+<li><strong>Activity:</strong> com.amazon.aps.ads.activity.ApsInterstitialActivity</li>
+<li><strong>Activity:</strong> com.amazon.device.ads.DTBInterstitialActivity</li>
+</ul>
+<p>Exported components without proper permission protection can be accessed by other apps, potentially leading to security vulnerabilities.</p>
+</div>
+<div class="warning">
+<p><strong>⚠️ Dangerous Permissions Requested:</strong></p>
+<ul>
+<li>android.permission.READ_CONTACTS</li>
+<li>android.permission.ACCESS_FINE_LOCATION</li>
+<li>android.permission.ACCESS_COARSE_LOCATION</li>
+<li>android.permission.CAMERA</li>
+<li>android.permission.RECORD_AUDIO</li>
+<li>android.permission.READ_EXTERNAL_STORAGE</li>
+</ul>
+<p>These permissions give access to sensitive user data. Ensure they are properly justified in the app's functionality.</p>
+</div>
+</div>
+
+        
+        <div class="footer">
+            <p>Report generated by APK Manifest Analyzer</p>
+        </div>
+    </div>
+</body>
+</html>
