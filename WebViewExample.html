@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Manifest Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .file-input-label:hover {
+            background-color: #e2e8f0;
+        }
+        .file-input-label.drag-over {
+            background-color: #ebf8ff;
+            border-color: #4299e1;
+        }
+        .component-card {
+            transition: all 0.2s ease;
+        }
+        .component-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-mobile-alt text-blue-500 mr-2"></i>
+                APK Manifest Analyzer
+            </h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Upload an Android APK file to analyze its manifest and identify potential security issues
+            </p>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden mb-10">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload APK File</h2>
+                
+                <div id="upload-container" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors duration-200">
+                    <label id="file-input-label" for="apk-file" class="file-input-label cursor-pointer flex flex-col items-center justify-center space-y-4">
+                        <div class="p-4 bg-blue-50 rounded-full">
+                            <i class="fas fa-cloud-upload-alt text-blue-500 text-3xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-700">Drag & drop your APK file here</p>
+                            <p class="text-sm text-gray-500 mt-1">or click to browse files</p>
+                        </div>
+                        <span id="file-name" class="text-sm text-gray-500"></span>
+                    </label>
+                    <input id="apk-file" type="file" accept=".apk" class="hidden" />
+                </div>
+
+                <div id="error-message" class="mt-4 text-red-500 text-sm hidden"></div>
+
+                <button id="analyze-btn" class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <span>Analyze APK</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section (Initially Hidden) -->
+        <div id="results-section" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Analysis Results</h2>
+                <button id="new-analysis-btn" class="text-blue-500 hover:text-blue-700 font-medium flex items-center">
+                    <i class="fas fa-redo mr-2"></i> New Analysis
+                </button>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i> Summary
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">APK File</p>
+                            <p id="apk-name" class="font-medium text-gray-800 truncate"></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Package Name</p>
+                            <p id="package-name" class="font-medium text-gray-800 truncate"></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Version</p>
+                            <p id="version-info" class="font-medium text-gray-800"></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Min SDK</p>
+                            <p id="min-sdk" class="font-medium text-gray-800"></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Target SDK</p>
+                            <p id="target-sdk" class="font-medium text-gray-800"></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Analysis Time</p>
+                            <p id="analysis-time" class="font-medium text-gray-800"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Components Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden component-card">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-medium text-gray-700">Activities</h3>
+                            <span id="activity-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"></span>
+                        </div>
+                        <p id="activity-exported" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden component-card">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-medium text-gray-700">Services</h3>
+                            <span id="service-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"></span>
+                        </div>
+                        <p id="service-exported" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden component-card">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-medium text-gray-700">Receivers</h3>
+                            <span id="receiver-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"></span>
+                        </div>
+                        <p id="receiver-exported" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden component-card">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-medium text-gray-700">Providers</h3>
+                            <span id="provider-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"></span>
+                        </div>
+                        <p id="provider-exported" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Findings -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-shield-alt text-blue-500 mr-2"></i> Security Findings
+                    </h3>
+                    <div id="security-findings" class="space-y-4">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Components -->
+            <div class="space-y-8">
+                <!-- Activities -->
+                <div id="activities-section" class="hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-mobile-screen-button text-blue-500 mr-2"></i> Exported Activities
+                            </h3>
+                            <div id="activities-list" class="space-y-4">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div id="services-section" class="hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-gears text-blue-500 mr-2"></i> Exported Services
+                            </h3>
+                            <div id="services-list" class="space-y-4">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receivers -->
+                <div id="receivers-section" class="hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-broadcast-tower text-blue-500 mr-2"></i> Exported Broadcast Receivers
+                            </h3>
+                            <div id="receivers-list" class="space-y-4">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Providers -->
+                <div id="providers-section" class="hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-database text-blue-500 mr-2"></i> Exported Content Providers
+                            </h3>
+                            <div id="providers-list" class="space-y-4">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permissions -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-key text-blue-500 mr-2"></i> Permissions
+                        </h3>
+                        <div id="permissions-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-6 max-w-sm w-full text-center">
+                <div class="loading-spinner inline-block text-blue-500 text-4xl mb-4">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Analyzing APK</h3>
+                <p class="text-gray-600">This may take a few moments...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const fileInput = document.getElementById('apk-file');
+            const fileInputLabel = document.getElementById('file-input-label');
+            const fileNameSpan = document.getElementById('file-name');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const errorMessage = document.getElementById('error-message');
+            const resultsSection = document.getElementById('results-section');
+            const newAnalysisBtn = document.getElementById('new-analysis-btn');
+            const loadingOverlay = document.getElementById('loading-overlay');
+
+            // Drag and drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileInputLabel.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileInputLabel.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileInputLabel.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                fileInputLabel.classList.add('drag-over');
+            }
+
+            function unhighlight() {
+                fileInputLabel.classList.remove('drag-over');
+            }
+
+            fileInputLabel.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.name.endsWith('.apk')) {
+                        handleFileSelection(file);
+                    } else {
+                        showError('Please select an APK file (.apk)');
+                    }
+                }
+            }
+
+            // File input change handler
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    handleFileSelection(file);
+                }
+            });
+
+            function handleFileSelection(file) {
+                if (!file.name.endsWith('.apk')) {
+                    showError('Please select an APK file (.apk)');
+                    return;
+                }
+
+                // Update UI
+                fileNameSpan.textContent = file.name;
+                analyzeBtn.disabled = false;
+                hideError();
+            }
+
+            // Analyze button click handler
+            analyzeBtn.addEventListener('click', function() {
+                if (fileInput.files.length === 0) {
+                    showError('Please select an APK file first');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                analyzeApk(file);
+            });
+
+            // New analysis button click handler
+            newAnalysisBtn.addEventListener('click', function() {
+                resetAnalysis();
+            });
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+            }
+
+            function hideError() {
+                errorMessage.classList.add('hidden');
+            }
+
+            function resetAnalysis() {
+                // Reset file input
+                fileInput.value = '';
+                fileNameSpan.textContent = '';
+                analyzeBtn.disabled = true;
+                
+                // Hide results and show upload form
+                resultsSection.classList.add('hidden');
+                
+                // Clear any errors
+                hideError();
+            }
+
+            async function analyzeApk(file) {
+                // Show loading overlay
+                loadingOverlay.classList.remove('hidden');
+                
+                try {
+                    // Simulate API call (in a real app, this would be a fetch to your Flask backend)
+                    // For this demo, we'll use a timeout to simulate processing
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Generate mock data for demo purposes
+                    const mockData = generateMockData(file.name);
+                    
+                    // Display results
+                    displayResults(mockData, file.name);
+                    
+                    // Hide loading overlay
+                    loadingOverlay.classList.add('hidden');
+                } catch (error) {
+                    console.error('Error analyzing APK:', error);
+                    showError('An error occurred while analyzing the APK. Please try again.');
+                    loadingOverlay.classList.add('hidden');
+                }
+            }
+
+            function generateMockData(apkName) {
+                // This is just for demo purposes - in a real app, this data would come from your Flask backend
+                const now = new Date();
+                return {
+                    apk_name: apkName,
+                    package_name: 'com.example.demopackage',
+                    version_code: '42',
+                    version_name: '1.3.7',
+                    min_sdk: '21',
+                    target_sdk: '30',
+                    timestamp: now.toLocaleString(),
+                    components: {
+                        activities: [
+                            {
+                                name: 'com.example.demopackage.MainActivity',
+                                exported: 'true',
+                                permission: null,
+                                intent_filters: [
+                                    {
+                                        actions: ['android.intent.action.MAIN'],
+                                        categories: ['android.intent.category.LAUNCHER'],
+                                        data: []
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'com.example.demopackage.LoginActivity',
+                                exported: 'true',
+                                permission: null,
+                                intent_filters: []
+                            },
+                            {
+                                name: 'com.example.demopackage.InternalActivity',
+                                exported: 'false',
+                                permission: null,
+                                intent_filters: []
+                            }
+                        ],
+                        services: [
+                            {
+                                name: 'com.example.demopackage.BackgroundService',
+                                exported: 'true',
+                                permission: 'android.permission.BIND_JOB_SERVICE'
+                            },
+                            {
+                                name: 'com.example.demopackage.SyncService',
+                                exported: 'false',
+                                permission: null
+                            }
+                        ],
+                        receivers: [
+                            {
+                                name: 'com.example.demopackage.BootReceiver',
+                                exported: 'true',
+                                permission: 'android.permission.RECEIVE_BOOT_COMPLETED'
+                            }
+                        ],
+                        providers: [
+                            {
+                                name: 'com.example.demopackage.FileProvider',
+                                exported: 'true',
+                                permission: null,
+                                read_permission: null,
+                                write_permission: null
+                            }
+                        ],
+                        permissions: [
+                            'android.permission.INTERNET',
+                            'android.permission.ACCESS_NETWORK_STATE',
+                            'android.permission.RECEIVE_BOOT_COMPLETED',
+                            'android.permission.READ_EXTERNAL_STORAGE',
+                            'android.permission.WRITE_EXTERNAL_STORAGE',
+                            'android.permission.ACCESS_FINE_LOCATION',
+                            'android.permission.CAMERA'
+                        ]
+                    }
+                };
+            }
+
+            function displayResults(data, originalFileName) {
+                // Update summary section
+                document.getElementById('apk-name').textContent = originalFileName;
+                document.getElementById('package-name').textContent = data.package_name;
+                document.getElementById('version-info').textContent = `${data.version_name || 'N/A'} (Code: ${data.version_code || 'N/A'})`;
+                document.getElementById('min-sdk').textContent = data.min_sdk || 'N/A';
+                document.getElementById('target-sdk').textContent = data.target_sdk || 'N/A';
+                document.getElementById('analysis-time').textContent = data.timestamp;
+                
+                // Update component counts
+                const exportedActivities = data.components.activities.filter(a => a.exported === 'true');
+                const exportedServices = data.components.services.filter(s => s.exported === 'true');
+                const exportedReceivers = data.components.receivers.filter(r => r.exported === 'true');
+                const exportedProviders = data.components.providers.filter(p => p.exported === 'true');
+                
+                document.getElementById('activity-count').textContent = exportedActivities.length;
+                document.getElementById('service-count').textContent = exportedServices.length;
+                document.getElementById('receiver-count').textContent = exportedReceivers.length;
+                document.getElementById('provider-count').textContent = exportedProviders.length;
+                
+                document.getElementById('activity-exported').textContent = `${exportedActivities.length} exported`;
+                document.getElementById('service-exported').textContent = `${exportedServices.length} exported`;
+                document.getElementById('receiver-exported').textContent = `${exportedReceivers.length} exported`;
+                document.getElementById('provider-exported').textContent = `${exportedProviders.length} exported`;
+                
+                // Generate security findings
+                generateSecurityFindings(data.components);
+                
+                // Generate detailed component sections
+                generateComponentSection('activities', exportedActivities, 'activity');
+                generateComponentSection('services', exportedServices, 'service');
+                generateComponentSection('receivers', exportedReceivers, 'receiver');
+                generateComponentSection('providers', exportedProviders, 'provider');
+                
+                // Generate permissions list
+                const permissionsList = document.getElementById('permissions-list');
+                permissionsList.innerHTML = '';
+                
+                data.components.permissions.forEach(perm => {
+                    const permElement = document.createElement('div');
+                    permElement.className = 'bg-gray-50 p-3 rounded-md flex items-start';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-key text-gray-400 mt-1 mr-2 text-sm';
+                    
+                    const text = document.createElement('span');
+                    text.className = 'text-gray-700 text-sm';
+                    text.textContent = perm;
+                    
+                    permElement.appendChild(icon);
+                    permElement.appendChild(text);
+                    permissionsList.appendChild(permElement);
+                });
+                
+                // Show results section
+                resultsSection.classList.remove('hidden');
+            }
+
+            function generateSecurityFindings(components) {
+                const securityFindings = document.getElementById('security-findings');
+                securityFindings.innerHTML = '';
+                
+                // Check for exported components without permission protection
+                const vulnerableComponents = [];
+                
+                components.activities.forEach(activity => {
+                    if (activity.exported === 'true' && !activity.permission) {
+                        vulnerableComponents.push({type: 'Activity', name: activity.name});
+                    }
+                });
+                
+                components.services.forEach(service => {
+                    if (service.exported === 'true' && !service.permission) {
+                        vulnerableComponents.push({type: 'Service', name: service.name});
+                    }
+                });
+                
+                components.receivers.forEach(receiver => {
+                    if (receiver.exported === 'true' && !receiver.permission) {
+                        vulnerableComponents.push({type: 'Broadcast Receiver', name: receiver.name});
+                    }
+                });
+                
+                components.providers.forEach(provider => {
+                    if (provider.exported === 'true' && !provider.permission) {
+                        vulnerableComponents.push({type: 'Content Provider', name: provider.name});
+                    }
+                });
+                
+                if (vulnerableComponents.length > 0) {
+                    const findingElement = document.createElement('div');
+                    findingElement.className = 'bg-red-50 border-l-4 border-red-500 p-4';
+                    
+                    const heading = document.createElement('div');
+                    heading.className = 'flex items-center';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-exclamation-triangle text-red-500 mr-2';
+                    
+                    const title = document.createElement('h4');
+                    title.className = 'font-medium text-red-800';
+                    title.textContent = 'Security Warning: Exported Components Without Permission Protection';
+                    
+                    heading.appendChild(icon);
+                    heading.appendChild(title);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'mt-2 text-red-700';
+                    
+                    const text = document.createElement('p');
+                    text.className = 'mb-2';
+                    text.textContent = 'The following components are exported and not protected by permissions:';
+                    
+                    const list = document.createElement('ul');
+                    list.className = 'list-disc pl-5 space-y-1';
+                    
+                    vulnerableComponents.forEach(comp => {
+                        const item = document.createElement('li');
+                        item.innerHTML = `<strong>${comp.type}:</strong> ${comp.name}`;
+                        list.appendChild(item);
+                    });
+                    
+                    const note = document.createElement('p');
+                    note.className = 'mt-2 text-sm';
+                    note.textContent = 'Exported components without proper permission protection can be accessed by other apps, potentially leading to security vulnerabilities.';
+                    
+                    content.appendChild(text);
+                    content.appendChild(list);
+                    content.appendChild(note);
+                    
+                    findingElement.appendChild(heading);
+                    findingElement.appendChild(content);
+                    
+                    securityFindings.appendChild(findingElement);
+                } else {
+                    const findingElement = document.createElement('div');
+                    findingElement.className = 'bg-green-50 border-l-4 border-green-500 p-4';
+                    
+                    const heading = document.createElement('div');
+                    heading.className = 'flex items-center';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-check-circle text-green-500 mr-2';
+                    
+                    const title = document.createElement('h4');
+                    title.className = 'font-medium text-green-800';
+                    title.textContent = 'No exported components without permission protection';
+                    
+                    heading.appendChild(icon);
+                    heading.appendChild(title);
+                    
+                    findingElement.appendChild(heading);
+                    securityFindings.appendChild(findingElement);
+                }
+                
+                // Check for dangerous permissions
+                const dangerousPerms = [
+                    'android.permission.READ_CONTACTS',
+                    'android.permission.WRITE_CONTACTS',
+                    'android.permission.READ_CALENDAR',
+                    'android.permission.WRITE_CALENDAR',
+                    'android.permission.ACCESS_FINE_LOCATION',
+                    'android.permission.ACCESS_COARSE_LOCATION',
+                    'android.permission.CAMERA',
+                    'android.permission.READ_EXTERNAL_STORAGE',
+                    'android.permission.WRITE_EXTERNAL_STORAGE',
+                    'android.permission.RECORD_AUDIO',
+                    'android.permission.READ_SMS',
+                    'android.permission.SEND_SMS',
+                    'android.permission.RECEIVE_SMS',
+                    'android.permission.READ_PHONE_STATE',
+                    'android.permission.CALL_PHONE'
+                ];
+                
+                const foundDangerousPerms = components.permissions.filter(perm => dangerousPerms.includes(perm));
+                
+                if (foundDangerousPerms.length > 0) {
+                    const findingElement = document.createElement('div');
+                    findingElement.className = 'bg-yellow-50 border-l-4 border-yellow-500 p-4';
+                    
+                    const heading = document.createElement('div');
+                    heading.className = 'flex items-center';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-exclamation-triangle text-yellow-500 mr-2';
+                    
+                    const title = document.createElement('h4');
+                    title.className = 'font-medium text-yellow-800';
+                    title.textContent = 'Dangerous Permissions Requested';
+                    
+                    heading.appendChild(icon);
+                    heading.appendChild(title);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'mt-2 text-yellow-700';
+                    
+                    const text = document.createElement('p');
+                    text.className = 'mb-2';
+                    text.textContent = 'The app requests the following dangerous permissions:';
+                    
+                    const list = document.createElement('ul');
+                    list.className = 'list-disc pl-5 space-y-1';
+                    
+                    foundDangerousPerms.forEach(perm => {
+                        const item = document.createElement('li');
+                        item.textContent = perm;
+                        list.appendChild(item);
+                    });
+                    
+                    const note = document.createElement('p');
+                    note.className = 'mt-2 text-sm';
+                    note.textContent = 'These permissions give access to sensitive user data. Ensure they are properly justified in the app\'s functionality.';
+                    
+                    content.appendChild(text);
+                    content.appendChild(list);
+                    content.appendChild(note);
+                    
+                    findingElement.appendChild(heading);
+                    findingElement.appendChild(content);
+                    
+                    securityFindings.appendChild(findingElement);
+                } else {
+                    const findingElement = document.createElement('div');
+                    findingElement.className = 'bg-green-50 border-l-4 border-green-500 p-4';
+                    
+                    const heading = document.createElement('div');
+                    heading.className = 'flex items-center';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-check-circle text-green-500 mr-2';
+                    
+                    const title = document.createElement('h4');
+                    title.className = 'font-medium text-green-800';
+                    title.textContent = 'No dangerous permissions requested';
+                    
+                    heading.appendChild(icon);
+                    heading.appendChild(title);
+                    
+                    findingElement.appendChild(heading);
+                    securityFindings.appendChild(findingElement);
+                }
+            }
+
+            function generateComponentSection(sectionId, components, componentType) {
+                const sectionElement = document.getElementById(`${sectionId}-section`);
+                const listElement = document.getElementById(`${sectionId}-list`);
+                
+                if (components.length === 0) {
+                    sectionElement.classList.add('hidden');
+                    return;
+                }
+                
+                sectionElement.classList.remove('hidden');
+                listElement.innerHTML = '';
+                
+                components.forEach(component => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-50 rounded-lg p-4';
+                    
+                    // Component name
+                    const nameRow = document.createElement('div');
+                    nameRow.className = 'flex justify-between items-start mb-2';
+                    
+                    const name = document.createElement('h4');
+                    name.className = 'font-medium text-gray-800';
+                    name.textContent = component.name;
+                    
+                    const exportedBadge = document.createElement('span');
+                    exportedBadge.className = 'bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded';
+                    exportedBadge.textContent = 'Exported';
+                    
+                    nameRow.appendChild(name);
+                    nameRow.appendChild(exportedBadge);
+                    card.appendChild(nameRow);
+                    
+                    // Permission
+                    if (component.permission) {
+                        const permissionRow = document.createElement('div');
+                        permissionRow.className = 'flex items-start mt-2';
+                        
+                        const permissionIcon = document.createElement('i');
+                        permissionIcon.className = 'fas fa-shield-alt text-gray-400 mt-1 mr-2 text-sm';
+                        
+                        const permissionText = document.createElement('span');
+                        permissionText.className = 'text-gray-700 text-sm';
+                        permissionText.innerHTML = `<strong>Permission:</strong> ${component.permission}`;
+                        
+                        permissionRow.appendChild(permissionIcon);
+                        permissionRow.appendChild(permissionText);
+                        card.appendChild(permissionRow);
+                    } else {
+                        const permissionRow = document.createElement('div');
+                        permissionRow.className = 'flex items-start mt-2';
+                        
+                        const permissionIcon = document.createElement('i');
+                        permissionIcon.className = 'fas fa-exclamation-triangle text-yellow-500 mt-1 mr-2 text-sm';
+                        
+                        const permissionText = document.createElement('span');
+                        permissionText.className = 'text-yellow-700 text-sm';
+                        permissionText.innerHTML = '<strong>No permission protection</strong>';
+                        
+                        permissionRow.appendChild(permissionIcon);
+                        permissionRow.appendChild(permissionText);
+                        card.appendChild(permissionRow);
+                    }
+                    
+                    // Additional fields based on component type
+                    if (componentType === 'activity' && component.intent_filters && component.intent_filters.length > 0) {
+                        const filtersTitle = document.createElement('div');
+                        filtersTitle.className = 'mt-3 mb-1 text-sm font-medium text-gray-700';
+                        filtersTitle.textContent = 'Intent Filters:';
+                        card.appendChild(filtersTitle);
+                        
+                        component.intent_filters.forEach((filter, index) => {
+                            const filterDiv = document.createElement('div');
+                            filterDiv.className = 'ml-4 mb-2 pl-3 border-l-2 border-gray-200';
+                            
+                            const filterHeader = document.createElement('div');
+                            filterHeader.className = 'text-sm text-gray-600 mb-1';
+                            filterHeader.textContent = `Filter ${index + 1}`;
+                            filterDiv.appendChild(filterHeader);
+                            
+                            if (filter.actions && filter.actions.length > 0) {
+                                const actionsDiv = document.createElement('div');
+                                actionsDiv.className = 'flex items-start text-sm';
+                                
+                                const actionsIcon = document.createElement('i');
+                                actionsIcon.className = 'fas fa-bolt text-gray-400 mt-0.5 mr-2 text-xs';
+                                
+                                const actionsText = document.createElement('span');
+                                actionsText.className = 'text-gray-600';
+                                actionsText.innerHTML = `<strong>Actions:</strong> ${filter.actions.join(', ')}`;
+                                
+                                actionsDiv.appendChild(actionsIcon);
+                                actionsDiv.appendChild(actionsText);
+                                filterDiv.appendChild(actionsDiv);
+                            }
+                            
+                            if (filter.categories && filter.categories.length > 0) {
+                                const categoriesDiv = document.createElement('div');
+                                categoriesDiv.className = 'flex items-start text-sm mt-1';
+                                
+                                const categoriesIcon = document.createElement('i');
+                                categoriesIcon.className = 'fas fa-tag text-gray-400 mt-0.5 mr-2 text-xs';
+                                
+                                const categoriesText = document.createElement('span');
+                                categoriesText.className = 'text-gray-600';
+                                categoriesText.innerHTML = `<strong>Categories:</strong> ${filter.categories.join(', ')}`;
+                                
+                                categoriesDiv.appendChild(categoriesIcon);
+                                categoriesDiv.appendChild(categoriesText);
+                                filterDiv.appendChild(categoriesDiv);
+                            }
+                            
+                            if (filter.data && filter.data.length > 0 && filter.data.some(d => d)) {
+                                const dataDiv = document.createElement('div');
+                                dataDiv.className = 'flex items-start text-sm mt-1';
+                                
+                                const dataIcon = document.createElement('i');
+                                dataIcon.className = 'fas fa-database text-gray-400 mt-0.5 mr-2 text-xs';
+                                
+                                const dataText = document.createElement('span');
+                                dataText.className = 'text-gray-600';
+                                dataText.innerHTML = `<strong>Data Schemes:</strong> ${filter.data.filter(d => d).join(', ')}`;
+                                
+                                dataDiv.appendChild(dataIcon);
+                                dataDiv.appendChild(dataText);
+                                filterDiv.appendChild(dataDiv);
+                            }
+                            
+                            card.appendChild(filterDiv);
+                        });
+                    }
+                    
+                    if (componentType === 'provider') {
+                        if (component.read_permission || component.write_permission) {
+                            const providerPermsDiv = document.createElement('div');
+                            providerPermsDiv.className = 'mt-2 space-y-1';
+                            
+                            if (component.read_permission) {
+                                const readPermRow = document.createElement('div');
+                                readPermRow.className = 'flex items-start text-sm';
+                                
+                                const readPermIcon = document.createElement('i');
+                                readPermIcon.className = 'fas fa-eye text-gray-400 mt-0.5 mr-2';
+                                
+                                const readPermText = document.createElement('span');
+                                readPermText.className = 'text-gray-600';
+                                readPermText.innerHTML = `<strong>Read Permission:</strong> ${component.read_permission}`;
+                                
+                                readPermRow.appendChild(readPermIcon);
+                                readPermRow.appendChild(readPermText);
+                                providerPermsDiv.appendChild(readPermRow);
+                            }
+                            
+                            if (component.write_permission) {
+                                const writePermRow = document.createElement('div');
+                                writePermRow.className = 'flex items-start text-sm';
+                                
+                                const writePermIcon = document.createElement('i');
+                                writePermIcon.className = 'fas fa-pen text-gray-400 mt-0.5 mr-2';
+                                
+                                const writePermText = document.createElement('span');
+                                writePermText.className = 'text-gray-600';
+                                writePermText.innerHTML = `<strong>Write Permission:</strong> ${component.write_permission}`;
+                                
+                                writePermRow.appendChild(writePermIcon);
+                                writePermRow.appendChild(writePermText);
+                                providerPermsDiv.appendChild(writePermRow);
+                            }
+                            
+                            card.appendChild(providerPermsDiv);
+                        }
+                    }
+                    
+                    listElement.appendChild(card);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
